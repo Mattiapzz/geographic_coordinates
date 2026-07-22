@@ -14,20 +14,25 @@ jobs:
       fail-fast: false
       matrix:
         preset: [debug, release]
+        toolchain: [linux-gcc, linux-clang, macos-clang, windows-msvc]
         include:
-          - name: Linux GCC
+          - toolchain: linux-gcc
+            name: Linux GCC
             os: ubuntu-latest
             cc: gcc
             cxx: g++
-          - name: Linux Clang
+          - toolchain: linux-clang
+            name: Linux Clang
             os: ubuntu-latest
             cc: clang
             cxx: clang++
-          - name: macOS AppleClang
+          - toolchain: macos-clang
+            name: macOS AppleClang
             os: macos-latest
             cc: clang
             cxx: clang++
-          - name: Windows MSVC
+          - toolchain: windows-msvc
+            name: Windows MSVC
             os: windows-latest
             cc: cl
             cxx: cl
