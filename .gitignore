@@ -1,3 +1,13 @@
 .vscode
 ./build
 ./lib
+
+.claude
+
+build
+bin
+*.dylib
+*.so
+*.dll
+__pycache__/
+.pytest_cache/

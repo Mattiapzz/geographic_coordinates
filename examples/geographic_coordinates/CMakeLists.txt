@@ -1,0 +1,2 @@
+add_executable(example_geographic_coordinates_conversions example_conversions.cc)
+target_link_libraries(example_geographic_coordinates_conversions PRIVATE geographic_coordinates::geographic_coordinates)

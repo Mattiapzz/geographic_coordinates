@@ -1,102 +1,64 @@
 ############################################################################
 #                                                                          #
-#  file: CMakeLists.txt                                                    #
-#  Copyright (C) 2019                                                      #
-#      Enrico Bertolazzi  & Francesco Biral & Mattia Piazza                #
-#      Dipartimento di Ingegneria Industriale                              #
-#      Universita` degli Studi di Trento                                   #
-#      <mailto:enrico.bertolazzi@unitn.it>                                 #
+#  file: CMakeLists.txt                                                   #
+#      Enrico Bertolazzi & Francesco Biral & Mattia Piazza                #
+#      Dipartimento di Ingegneria Industriale                             #
+#      Universita` degli Studi di Trento                                  #
 #                                                                          #
 ############################################################################
 
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.21)
 
-set( TARGET GeoConversion )
-project( ${TARGET} C CXX )
-
-set( CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS TRUE )
-set( CMAKE_VERBOSE_MAKEfile            FALSE )
-set( CMAKE_BUILD_TYPE                  Release )
-
-set( CMAKE_CXX_STANDARD 11 )
-
-set( CXXFLAGS "-O3 -DNDEBUG" )
-set( LFLAGS "" )
-set( LIBS "" )
-set( INCLUDE "" )
-
-
-
-set( CMAKE_FLAGS            "${CXXFLAGS} ${INCLUDE}" )
-set( CMAKE_LINKER           ${LFLAGS} ${LIBS} )
-set( CMAKE_CXX_FLAGS_DEBUG  ${CMAKE_FLAGS}  )
-set( CMAKE_CXX_FLAGS        ${CMAKE_FLAGS}  )
-
-include_directories(
-  src
+project(
+  geographic_coordinates
+  VERSION 1.0.0
+  LANGUAGES CXX
 )
 
-#
-#   _____  _____ ___ _   _ _____ _   ___ _    ___
-#  | __\ \/ / __/ __| | | |_   _/_\ | _ ) |  | __|
-#  | _| >  <| _| (__| |_| | | |/ _ \| _ \ |__| _|
-#  |___/_/\_\___\___|\___/  |_/_/ \_\___/____|___|
-#
+include(ProjectOptions.cmake)
+include(Dependencies.cmake)
 
-set( SOURCES )
-file( GLOB S src/*.c*  )
-foreach(F ${S})
-  file( RELATIVE_PATH RF ${CMAKE_CURRENT_SOURCE_DIR} "${F}" )
-  list( APPEND SOURCES ${RF} )
-endforeach()
+install(
+  TARGETS geographic_coordinates_project_warnings geographic_coordinates_sanitizers
+  EXPORT geographic_coordinatesTargets
+)
 
-set( HEADERS )
-file( GLOB S src/*.h*  )
-foreach(F ${S})
-  file( RELATIVE_PATH RF ${CMAKE_CURRENT_SOURCE_DIR} "${F}" )
-  list( APPEND HEADERS ${RF} )
-endforeach()
+add_subdirectory(src)
 
-
-set(EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/bin)
-
-#SET( EXECUTABLE VirtualCoach VirtualCoachReader Receive )
-set( EXECUTABLE test_1  )
-foreach( EXE ${EXECUTABLE} )
-  add_executable( ${EXE}  test/${EXE}.cc ${SOURCES} ) # non uso tutti sources
-endforeach()
-
-message( STATUS "Using ${SSE_FLAGS} extensions")
-message( STATUS "C compiler                  = ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER}" )
-message( STATUS "C++ compiler                = ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER}" )
-message( STATUS "CMAKE_CXX_FLAGS_RELEASE     = ${CMAKE_CXX_FLAGS_RELEASE}" )
-message( STATUS "CMAKE_CXX_FLAGS             = ${CMAKE_CXX_FLAGS}" )
-message( STATUS "CMAKE_C_FLAGS_RELEASE       = ${CMAKE_C_FLAGS_RELEASE}" )
-message( STATUS "CMAKE_C_FLAGS               = ${CMAKE_C_FLAGS}" )
-message( STATUS "CMAKE_SYSTEM_NAME           = ${CMAKE_SYSTEM_NAME}" )
-message( STATUS "CMAKE_SYSTEM_PROCESSOR      = ${CMAKE_SYSTEM_PROCESSOR}" )
-if(APPLE)
-  message( STATUS "CMAKE_OSX_SYSROOT           = ${CMAKE_OSX_SYSROOT}" )
-  message( STATUS "CMAKE_OSX_ARCHITECTURES     = ${CMAKE_OSX_ARCHITECTURES}" )
-  message( STATUS "CMAKE_OSX_DEPLOYMENT_TARGET = ${CMAKE_OSX_DEPLOYMENT_TARGET}" )
+if(GEOGRAPHIC_COORDINATES_BUILD_PYTHON_BINDINGS)
+  add_subdirectory(python)
 endif()
 
-# Define the GeoConversion library
-add_library(GeoConversion ${SOURCES})
+if(GEOGRAPHIC_COORDINATES_BUILD_TESTS)
+  enable_testing()
+  add_subdirectory(test)
+endif()
 
-# set the public headers
-set_target_properties(GeoConversion PROPERTIES PUBLIC "${HEADERS}")
+if(GEOGRAPHIC_COORDINATES_BUILD_EXAMPLES)
+  add_subdirectory(examples)
+endif()
 
-# install GeoConversion library in lib directory
 install(
-  TARGETS GeoConversion
-  ARCHIVE DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/lib/lib
-  LIBRARY DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/lib/lib
-  RUNTIME DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/bin
+  EXPORT geographic_coordinatesTargets
+  FILE geographic_coordinatesTargets.cmake
+  NAMESPACE geographic_coordinates::
+  DESTINATION lib/cmake/geographic_coordinates
 )
 
-# install the public headers
+include(CMakePackageConfigHelpers)
+configure_package_config_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/cmake/geographic_coordinatesConfig.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/geographic_coordinatesConfig.cmake
+  INSTALL_DESTINATION lib/cmake/geographic_coordinates
+)
+write_basic_package_version_file(
+  ${CMAKE_CURRENT_BINARY_DIR}/geographic_coordinatesConfigVersion.cmake
+  VERSION ${PROJECT_VERSION}
+  COMPATIBILITY SameMajorVersion
+)
 install(
-  FILES ${HEADERS}
-  DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/lib/include
+  FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/geographic_coordinatesConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/geographic_coordinatesConfigVersion.cmake
+  DESTINATION lib/cmake/geographic_coordinates
 )
