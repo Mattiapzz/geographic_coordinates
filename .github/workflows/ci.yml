@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.name }} / ${{ matrix.preset }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        preset: [debug, release]
+        include:
+          - name: Linux GCC
+            os: ubuntu-latest
+            cc: gcc
+            cxx: g++
+          - name: Linux Clang
+            os: ubuntu-latest
+            cc: clang
+            cxx: clang++
+          - name: macOS AppleClang
+            os: macos-latest
+            cc: clang
+            cxx: clang++
+          - name: Windows MSVC
+            os: windows-latest
+            cc: cl
+            cxx: cl
+
+    env:
+      CC: ${{ matrix.cc }}
+      CXX: ${{ matrix.cxx }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache FetchContent / build directory
+        uses: actions/cache@v4
+        with:
+          path: build/${{ matrix.preset }}/_deps
+          key: ${{ runner.os }}-${{ matrix.cc }}-${{ matrix.preset }}-deps-${{ hashFiles('Dependencies.cmake') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.cc }}-${{ matrix.preset }}-deps-
+
+      - name: Configure (MSVC)
+        if: runner.os == 'Windows'
+        run: cmake --preset ${{ matrix.preset }}
+
+      - name: Configure (GCC/Clang/AppleClang)
+        if: runner.os != 'Windows'
+        run: cmake --preset ${{ matrix.preset }} -DCMAKE_C_COMPILER=${{ matrix.cc }} -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
+
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }}
+
+      - name: Test
+        run: ctest --preset ${{ matrix.preset }}
+
+  format-check:
+    name: clang-format check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install clang-format
+        run: sudo apt-get update && sudo apt-get install -y clang-format
+
+      - name: Check formatting
+        run: |
+          files=$(find src python test examples -name '*.hh' -o -name '*.cc')
+          clang-format --dry-run -Werror $files

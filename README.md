@@ -1,5 +1,7 @@
 # geographic_coordinates
 
+[![CI](https://github.com/Mattiapzz/geographic_coordinates/actions/workflows/ci.yml/badge.svg)](https://github.com/Mattiapzz/geographic_coordinates/actions/workflows/ci.yml)
+
 Conversion between geographic coordinates: geodetic (latitude/longitude/height),
 Earth-Centered-Earth-Fixed (ECEF), and local East-North-Up (ENU) frames, based on
 the WGS84 ellipsoid.
